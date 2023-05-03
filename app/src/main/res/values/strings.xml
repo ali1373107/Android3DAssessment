@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="Name">Name</string>
+    <string name="Type">Type</string>
+    <string name="AddPOI">Add POI</string>
+    <string name="Addpoi">Add Point Of Interest</string>
 </resources>
