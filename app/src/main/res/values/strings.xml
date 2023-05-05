@@ -4,4 +4,6 @@
     <string name="Type">Type</string>
     <string name="AddPOI">Add POI</string>
     <string name="Addpoi">Add Point Of Interest</string>
+    <string name="AddDB">Add to DB</string>
+    <string name="Display">"Display Poi's on the Map "</string>
 </resources>

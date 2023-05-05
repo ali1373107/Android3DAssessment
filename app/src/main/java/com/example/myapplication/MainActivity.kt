@@ -21,6 +21,7 @@ import org.osmdroid.views.MapView
 import android.view.Menu
 import android.view.MenuInflater
 import android.content.Intent
+import android.util.Log
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import org.osmdroid.views.overlay.ItemizedIconOverlay
@@ -29,9 +30,11 @@ import org.osmdroid.views.overlay.OverlayItem
 
 class MainActivity : AppCompatActivity(), LocationListener {
     lateinit var map1: MapView
-    var lon = 0.0
+    var lon = -0.0
     var lat = 0.0
     lateinit var overlay: ItemizedIconOverlay<OverlayItem>
+    val poiList = mutableListOf<POI>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
@@ -44,24 +47,29 @@ class MainActivity : AppCompatActivity(), LocationListener {
         map1.overlays.add(overlay)
     }
 
-    val addPoiLauncher = {
+    val addPoiLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
                 it.data?.apply {
-                    val name = this.getStringExtra("com.example.myapplication.nameValue").toString()
-                    val type = this.getStringExtra("com.example.myapplication.typeValue").toString()
+                    val name = this.getStringExtra("com.example.myapplication.nameValue")?:""
+                    val type = this.getStringExtra("com.example.myapplication.typeValue")?:""
                     val description =
-                        this.getStringExtra("com.example.myapplication.decValue").toString()
+                        this.getStringExtra("com.example.myapplication.decValue")?:""
                     val newPointOfInterest =
                         OverlayItem(name, "${type}:${description}", GeoPoint(lat, lon))
                     overlay.addItem(newPointOfInterest)
+                    val poiObj = POI(0,name,type,description,lat,lon)
+                    poiList.add(poiObj)
 
 
                 }
             }
         }
 
-    }
+
+
+
+
 
 
     fun requestPermissions() {
@@ -79,6 +87,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             startGps()
         }
     }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -124,7 +133,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     }
 
-    override fun onCreateOptionMenu(menu: Menu): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
     }
@@ -136,6 +145,29 @@ class MainActivity : AppCompatActivity(), LocationListener {
                 addPoiLauncher.launch(intent)
                 return true
             }
+            R.id.add_db ->{
+                val db = PoiDatabase.getDatabase(application)
+                val PoiDao =db.PoiDao()
+                for(poi in poiList){
+                    val id = PoiDao.insert(poi)
+                    Log.d("DBTEST", "POI ID allocated is $id")
+                }
+            }
+            R.id.display_poi_onMap ->{
+                map1 = findViewById<MapView>(R.id.map1)
+                map1.controller.setZoom(16.0)
+                map1.controller.setCenter(GeoPoint(51.05, -0.72))
+                requestPermissions()
+                val db = PoiDatabase.getDatabase(application)
+                val PoiDao =db.PoiDao()
+                val pois = PoiDao.getAllpois()
+                val items = ItemizedIconOverlay(this, arrayListOf<OverlayItem>(), null)
+                for(poi in pois){
+                   items.addItem(poi)
+                    map1.overlays.add(items)
+                        // this is not correct you need to add a OverlayItem to the overlay
+            }
+
         }
         return false
     }

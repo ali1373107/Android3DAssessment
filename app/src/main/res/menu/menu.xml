@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/add_POI" android:title="@string/AddPOI"/>
+    <item android:id="@+id/add_db" android:title="@string/AddDB"/>
+    <item android:id="@+id/display_poi_onMap" android:title="@string/Display"/>
 </menu>
