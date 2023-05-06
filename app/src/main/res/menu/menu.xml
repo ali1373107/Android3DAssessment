@@ -3,4 +3,5 @@
     <item android:id="@+id/add_POI" android:title="@string/AddPOI"/>
     <item android:id="@+id/add_db" android:title="@string/AddDB"/>
     <item android:id="@+id/display_poi_onMap" android:title="@string/Display"/>
+    <item android:id="@+id/preferences" android:title="@string/pref"/>
 </menu>

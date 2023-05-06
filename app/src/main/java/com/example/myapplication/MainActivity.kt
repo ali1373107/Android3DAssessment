@@ -23,6 +23,7 @@ import android.view.MenuInflater
 import android.content.Intent
 import android.util.Log
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import org.osmdroid.views.overlay.ItemizedIconOverlay
 import org.osmdroid.views.overlay.Overlay
@@ -30,10 +31,11 @@ import org.osmdroid.views.overlay.OverlayItem
 
 class MainActivity : AppCompatActivity(), LocationListener {
     lateinit var map1: MapView
-    var lon = -0.0
+    var lon = 0.0
     var lat = 0.0
     lateinit var overlay: ItemizedIconOverlay<OverlayItem>
     val poiList = mutableListOf<POI>()
+    var upload =""?: true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,25 +53,25 @@ class MainActivity : AppCompatActivity(), LocationListener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
                 it.data?.apply {
-                    val name = this.getStringExtra("com.example.myapplication.nameValue")?:""
-                    val type = this.getStringExtra("com.example.myapplication.typeValue")?:""
+                    val name = this.getStringExtra("com.example.myapplication.nameValue") ?: ""
+                    val type = this.getStringExtra("com.example.myapplication.typeValue") ?: ""
                     val description =
-                        this.getStringExtra("com.example.myapplication.decValue")?:""
+                        this.getStringExtra("com.example.myapplication.decValue") ?: ""
                     val newPointOfInterest =
                         OverlayItem(name, "${type}:${description}", GeoPoint(lat, lon))
                     overlay.addItem(newPointOfInterest)
-                    val poiObj = POI(0,name,type,description,lat,lon)
+                    val poiObj = POI(0, name, type, description, lat, lon)
                     poiList.add(poiObj)
 
+                    Toast.makeText(this@MainActivity, "Set Preference", Toast.LENGTH_SHORT).show()
+                    if (upload == true){
+                        //not reqiure to implement in task 4
+                    } else {
 
+                    }
                 }
             }
         }
-
-
-
-
-
 
 
     fun requestPermissions() {
@@ -145,32 +147,48 @@ class MainActivity : AppCompatActivity(), LocationListener {
                 addPoiLauncher.launch(intent)
                 return true
             }
-            R.id.add_db ->{
+            R.id.add_db -> {
                 val db = PoiDatabase.getDatabase(application)
-                val PoiDao =db.PoiDao()
-                for(poi in poiList){
+                val PoiDao = db.PoiDao()
+                for (poi in poiList) {
                     val id = PoiDao.insert(poi)
                     Log.d("DBTEST", "POI ID allocated is $id")
                 }
             }
-            R.id.display_poi_onMap ->{
+            R.id.display_poi_onMap -> {
                 map1 = findViewById<MapView>(R.id.map1)
                 map1.controller.setZoom(16.0)
                 map1.controller.setCenter(GeoPoint(51.05, -0.72))
                 requestPermissions()
                 val db = PoiDatabase.getDatabase(application)
-                val PoiDao =db.PoiDao()
+                val PoiDao = db.PoiDao()
                 val pois = PoiDao.getAllpois()
                 val items = ItemizedIconOverlay(this, arrayListOf<OverlayItem>(), null)
-                for(poi in pois){
-                   items.addItem(poi)
-                    map1.overlays.add(items)
-                        // this is not correct you need to add a OverlayItem to the overlay
+                for (poi in pois) {
+                    val location = GeoPoint(poi.lat, poi.lon)
+                    val name = poi.name
+                    val des = poi.description
+                    val overlayItem = OverlayItem(name, des, location)
+                    items.addItem(overlayItem)
+                }
+                map1.overlays.add(items)
+
+            }
+
+            R.id.preferences ->{
+                val intent = Intent(this,PreferenceActivity::class.java)
+                startActivity(intent)
+                return true
             }
 
         }
         return false
     }
-
-
+    override fun onResume(){
+        super.onResume()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        upload = prefs.getBoolean("upload_to_web", true) ?: true
+    }
 }
+
+
