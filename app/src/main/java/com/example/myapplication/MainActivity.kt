@@ -28,6 +28,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import org.osmdroid.views.overlay.ItemizedIconOverlay
 import org.osmdroid.views.overlay.Overlay
 import org.osmdroid.views.overlay.OverlayItem
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity(), LocationListener {
     lateinit var map1: MapView
@@ -35,7 +39,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
     var lat = 0.0
     lateinit var overlay: ItemizedIconOverlay<OverlayItem>
     val poiList = mutableListOf<POI>()
-    var upload =""?: true
+    var upload = "" ?: true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +68,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
                     poiList.add(poiObj)
 
                     Toast.makeText(this@MainActivity, "Set Preference", Toast.LENGTH_SHORT).show()
-                    if (upload == true){
+                    if (upload == true) {
                         //not reqiure to implement in task 4
                     } else {
 
@@ -113,14 +117,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
     @SuppressLint("MissingPermission")
     fun startGps() {
         val mgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0f, this)
+        mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
     }
 
     override fun onLocationChanged(loc: Location) {
         map1.controller.setCenter(GeoPoint(loc.latitude, loc.longitude))
         lat = loc.latitude
         lon = loc.longitude
-
     }
 
     override fun onProviderEnabled(provider: String) {
@@ -148,47 +151,63 @@ class MainActivity : AppCompatActivity(), LocationListener {
                 return true
             }
             R.id.add_db -> {
-                val db = PoiDatabase.getDatabase(application)
-                val PoiDao = db.PoiDao()
-                for (poi in poiList) {
-                    val id = PoiDao.insert(poi)
-                    Log.d("DBTEST", "POI ID allocated is $id")
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val db = PoiDatabase.getDatabase(application)
+                        val PoiDao = db.PoiDao()
+                        for (poi in poiList) {
+                            val id = PoiDao.insert(poi)
+                            Log.d("DBTEST", "POI ID allocated is $id")
+                        }
+                    }
                 }
             }
             R.id.display_poi_onMap -> {
+                lifecycleScope.launch {
                 map1 = findViewById<MapView>(R.id.map1)
                 map1.controller.setZoom(16.0)
                 map1.controller.setCenter(GeoPoint(51.05, -0.72))
                 requestPermissions()
-                val db = PoiDatabase.getDatabase(application)
-                val PoiDao = db.PoiDao()
-                val pois = PoiDao.getAllpois()
-                val items = ItemizedIconOverlay(this, arrayListOf<OverlayItem>(), null)
-                for (poi in pois) {
-                    val location = GeoPoint(poi.lat, poi.lon)
-                    val name = poi.name
-                    val des = poi.description
-                    val overlayItem = OverlayItem(name, des, location)
-                    items.addItem(overlayItem)
+                    poiList.clear()
+                    withContext(Dispatchers.IO) {
+                        val db = PoiDatabase.getDatabase(application)
+                        val PoiDao = db.PoiDao()
+                        val pois = PoiDao.getAllpois()
+                        val items = arrayListOf<OverlayItem>()
+                        for (poi in pois) {
+                            val location = GeoPoint(poi.lat, poi.lon)
+                            val name = poi.name
+                            val des = poi.description
+                            val overlayItem = OverlayItem(name, des, location)
+                            items.add(overlayItem)
+                        }
+                        runOnUiThread {
+                            map1.overlays.clear()
+                            val itemizedIconOverlay =
+                                ItemizedIconOverlay(this@MainActivity, items, null)
+                            map1.overlays.add(itemizedIconOverlay)
+                        }
+                    }
                 }
-                map1.overlays.add(items)
-
             }
 
-            R.id.preferences ->{
-                val intent = Intent(this,PreferenceActivity::class.java)
+            R.id.preferences -> {
+                val intent = Intent(this, PreferenceActivity::class.java)
                 startActivity(intent)
                 return true
+
+
             }
 
         }
         return false
+
     }
-    override fun onResume(){
+
+    override fun onResume() {
         super.onResume()
         val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         upload = prefs.getBoolean("upload_to_web", true) ?: true
     }
 }
-
 
