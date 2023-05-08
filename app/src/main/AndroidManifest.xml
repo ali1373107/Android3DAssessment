@@ -24,7 +24,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".Addpoi" android:label="@string/Addpoi">
-
+        </activity>
+        <activity android:name=".PreferenceActivity" android:label="Preference">
         </activity>
     </application>
 

@@ -32,14 +32,27 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
+
+import com.github.kittinunf.fuel.core.Parameters
+import com.github.kittinunf.fuel.httpGet
+import com.github.kittinunf.fuel.gson.responseObject
+import com.github.kittinunf.fuel.httpPost
+import com.github.kittinunf.result.Result
+
 
 class MainActivity : AppCompatActivity(), LocationListener {
     lateinit var map1: MapView
     var lon = 0.0
-    var lat = 0.0
+    var lat = -0.0
     lateinit var overlay: ItemizedIconOverlay<OverlayItem>
     val poiList = mutableListOf<POI>()
+    var listOfPoi = mutableListOf<POI>()
     var upload = "" ?: true
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,7 +129,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     @SuppressLint("MissingPermission")
     fun startGps() {
-        val mgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val mgr = getSystemService(LOCATION_SERVICE) as LocationManager
         mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
     }
 
@@ -190,15 +203,50 @@ class MainActivity : AppCompatActivity(), LocationListener {
                     }
                 }
             }
-
             R.id.preferences -> {
                 val intent = Intent(this, PreferenceActivity::class.java)
                 startActivity(intent)
                 return true
-
-
             }
+          //  R.id.upload_from_web ->{
+              //  var url = "http://10.0.2.2:3000/poi/all"
+               // url.httpGet().responseObject<List<POI>>{ request, response, result ->
+              //      when(result){
+                      //  is Result.Success -> {
+                        //    listOfPoi= result.get().map//{"${it.name},${it.type},${it.description}",${it.lat},${it.lon}}
+                         //   lifecycleScope.launch {
 
+                      //          map1 = findViewById<MapView>(R.id.map1)
+                       //         map1.controller.setZoom(16.0)
+                       //         map1.controller.setCenter(GeoPoint(51.05, -0.72))
+                       //         requestPermissions()
+                        //        withContext(Dispatchers.IO) {
+
+                           //         val items = arrayListOf<OverlayItem>()
+                           //         for (poi in listOfPoi) {
+                           //             val location = GeoPoint(poi.lat, poi.lon)
+                           //             val name = poi.name
+                           //             val des = poi.description
+                         //               val overlayItem = OverlayItem(name, des, location)
+                         //               items.add(overlayItem)
+                         //           }
+                         //           runOnUiThread {
+                         //               map1.overlays.clear()
+                      //                  val itemizedIconOverlay =
+                      //                      ItemizedIconOverlay(this@MainActivity, items, null)
+                      //                  map1.overlays.add(itemizedIconOverlay)
+                      //              }
+                    //            }
+
+               //             }
+             //           }
+            //            is Result.Failure ->{
+
+             //           }
+            //        }
+
+            //    }
+            //}
         }
         return false
 
