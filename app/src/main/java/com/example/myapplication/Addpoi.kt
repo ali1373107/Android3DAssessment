@@ -12,21 +12,23 @@ class Addpoi : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.poi_add)
         val add = findViewById<Button>(R.id.btnAdd)
-        add.setOnClickListener({
+        add.setOnClickListener {
             val name = findViewById<EditText>(R.id.etName)
-            val nameValue = name.getText().toString()
+            val nameValue = name.text.toString()
             val type = findViewById<EditText>(R.id.etType)
-            val typeValue = type.getText().toString()
+            val typeValue = type.text.toString()
             val description = findViewById<EditText>(R.id.etDescription)
-            val decValue = description.getText().toString()
+            val decValue = description.text.toString()
             val intent = Intent()
-            val bundle = bundleOf("com.example.myapplication.nameValue" to nameValue,
-                                        "com.example.myapplication.typeValue" to typeValue,
-                                        "com.example.myapplication.decValue" to decValue)
+            val bundle = bundleOf(
+                "com.example.myapplication.nameValue" to nameValue,
+                "com.example.myapplication.typeValue" to typeValue,
+                "com.example.myapplication.decValue" to decValue
+            )
             intent.putExtras(bundle)
-            setResult(RESULT_OK,intent)
+            setResult(RESULT_OK, intent)
             finish()
-        })
+        }
 
     }
 }

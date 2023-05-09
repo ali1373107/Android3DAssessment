@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
+import com.github.kittinunf.fuel.core.FuelManager
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -47,12 +48,17 @@ import com.github.kittinunf.result.Result
 class MainActivity : AppCompatActivity(), LocationListener {
     lateinit var map1: MapView
     var lon = 0.0
-    var lat = -0.0
+    var lat = 0.0
     lateinit var overlay: ItemizedIconOverlay<OverlayItem>
     val poiList = mutableListOf<POI>()
+    private val url1 = "http://10.0.2.2:3000"
+
     var listOfPoi = mutableListOf<POI>()
     var upload = "" ?: true
 
+    init{
+        FuelManager.instance.basePath= url1
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,13 +83,30 @@ class MainActivity : AppCompatActivity(), LocationListener {
                     val newPointOfInterest =
                         OverlayItem(name, "${type}:${description}", GeoPoint(lat, lon))
                     overlay.addItem(newPointOfInterest)
-                    val poiObj = POI(0, name, type, description, lat, lon)
-                    poiList.add(poiObj)
+                    val Objpoi = POI(0, name, type, description, lat, lon)
+                    poiList.add(Objpoi)
 
-                    Toast.makeText(this@MainActivity, "Set Preference", Toast.LENGTH_SHORT).show()
                     if (upload == true) {
-                        //not reqiure to implement in task 4
+                        val postData = listOf(
+                            "name" to Objpoi.name,
+                            "type" to Objpoi.type,
+                            "description" to Objpoi.description,
+                            "lat" to Objpoi.lat,
+                            "lon" to Objpoi.lon
+                        )
+                        "$url1/poi/create".httpPost(postData).response { _, _, result ->
+                            when (result) {
+                                is Result.Success ->{
+                                    Log.i("RemoteDataSource", "New POI created successfully")
+                                }
+                                is Result.Failure ->{
+                                    Log.i("RemoteDataSource", "Failed to add new POI")
+                                    Log.i("RemoteDataSource", "${result.error.message}")
+                                }
+                            }
+                        }
                     } else {
+                        Toast.makeText(this@MainActivity, "Set Preference", Toast.LENGTH_SHORT).show()
 
                     }
                 }
@@ -208,45 +231,44 @@ class MainActivity : AppCompatActivity(), LocationListener {
                 startActivity(intent)
                 return true
             }
-          //  R.id.upload_from_web ->{
-              //  var url = "http://10.0.2.2:3000/poi/all"
-               // url.httpGet().responseObject<List<POI>>{ request, response, result ->
-              //      when(result){
-                      //  is Result.Success -> {
-                        //    listOfPoi= result.get().map//{"${it.name},${it.type},${it.description}",${it.lat},${it.lon}}
-                         //   lifecycleScope.launch {
+            R.id.upload_from_web ->{
+                "$url1/poi/all".httpGet().responseObject<List<POI>>{ request, response, result ->
+                    when(result){
+                        is Result.Success -> {
+                            listOfPoi= result.get()as MutableList<POI>
+                            lifecycleScope.launch {
 
-                      //          map1 = findViewById<MapView>(R.id.map1)
-                       //         map1.controller.setZoom(16.0)
-                       //         map1.controller.setCenter(GeoPoint(51.05, -0.72))
-                       //         requestPermissions()
-                        //        withContext(Dispatchers.IO) {
+                                map1 = findViewById<MapView>(R.id.map1)
+                                map1.controller.setZoom(16.0)
+                                map1.controller.setCenter(GeoPoint(51.05, -0.72))
+                                requestPermissions()
+                                withContext(Dispatchers.IO) {
 
-                           //         val items = arrayListOf<OverlayItem>()
-                           //         for (poi in listOfPoi) {
-                           //             val location = GeoPoint(poi.lat, poi.lon)
-                           //             val name = poi.name
-                           //             val des = poi.description
-                         //               val overlayItem = OverlayItem(name, des, location)
-                         //               items.add(overlayItem)
-                         //           }
-                         //           runOnUiThread {
-                         //               map1.overlays.clear()
-                      //                  val itemizedIconOverlay =
-                      //                      ItemizedIconOverlay(this@MainActivity, items, null)
-                      //                  map1.overlays.add(itemizedIconOverlay)
-                      //              }
-                    //            }
+                                    val items = arrayListOf<OverlayItem>()
+                                    for (poi in listOfPoi) {
+                                        val location = GeoPoint(poi.lat, poi.lon)
+                                        val name = poi.name
+                                        val des = poi.description
+                                        val overlayItem = OverlayItem(name, des, location)
+                                        items.add(overlayItem)
+                                    }
+                                    runOnUiThread {
+                                        map1.overlays.clear()
+                                        val itemizedIconOverlay =
+                                            ItemizedIconOverlay(this@MainActivity, items, null)
+                                        map1.overlays.add(itemizedIconOverlay)
+                                    }
+                                }
 
-               //             }
-             //           }
-            //            is Result.Failure ->{
+                            }
+                        }
+                        is Result.Failure ->{
 
-             //           }
-            //        }
+                        }
+                    }
 
-            //    }
-            //}
+                }
+            }
         }
         return false
 
