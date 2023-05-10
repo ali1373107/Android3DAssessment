@@ -251,7 +251,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
                                         val des = poi.description
                                         val overlayItem = OverlayItem(name, des, location)
                                         items.add(overlayItem)
-                                        Log.d("MyApp", "This is a debug message");
+                                        Log.d("MyApp", "This is a debug message b1");
                                     }
                                     runOnUiThread {
                                         map1.overlays.clear()
