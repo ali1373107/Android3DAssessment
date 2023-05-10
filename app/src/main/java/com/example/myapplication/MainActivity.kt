@@ -251,6 +251,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
                                         val des = poi.description
                                         val overlayItem = OverlayItem(name, des, location)
                                         items.add(overlayItem)
+                                        Log.d("MyApp", "This is a debug message");
                                     }
                                     runOnUiThread {
                                         map1.overlays.clear()
@@ -279,5 +280,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
         val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         upload = prefs.getBoolean("upload_to_web", true) ?: true
     }
+
 }
+
 
