@@ -8,6 +8,6 @@ data class POI (
         var name: String,
         var type: String,
         var description:String,
-        var lat:Double,
-        var lon:Double
+        val lat:Double,
+        val lon:Double
 )

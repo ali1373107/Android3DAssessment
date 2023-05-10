@@ -56,5 +56,6 @@ dependencies {
     implementation 'com.github.kittinunf.fuel:fuel-android:2.3.1'
     implementation 'com.github.kittinunf.fuel:fuel-gson:2.3.1'
     //implementation 'com.github.username:library-name:version'
+    implementation 'com.github.kittinunf.fuel:fuel-json:2.3.1'
 
 }
